@@ -31,6 +31,15 @@ class Config:
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    # Neon (and most serverless/pooled Postgres) drop idle connections.
+    # Without pool_pre_ping, SQLAlchemy can hand back a dead connection and
+    # the next DB write 500s. This checks the connection is alive first and
+    # transparently reconnects if not.
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,
+        "pool_recycle": 280,
+    }
+
     UPLOAD_FOLDER = os.path.join(basedir, "static", "uploads")
     MAX_CONTENT_LENGTH = 25 * 1024 * 1024  # 25 MB
     ALLOWED_EXTENSIONS = {"pdf", "doc", "docx", "png", "jpg", "jpeg"}

@@ -48,8 +48,11 @@
         </div>
 
         {% if current_content.content_type == 'video' %}
-          <div class="video-frame-wrap mb-3">
-            <iframe src="https://www.youtube.com/embed/{{ current_content.youtube_id }}" allowfullscreen></iframe>
+          <div class="video-frame-wrap mb-3" id="videoWrap">
+            <iframe id="videoIframe" src="https://www.youtube.com/embed/{{ current_content.youtube_id }}?enablejsapi=1" allowfullscreen allow="fullscreen"></iframe>
+            <button type="button" class="video-fullscreen-btn" id="videoFullscreenBtn" title="Fullscreen" onclick="toggleVideoFullscreen()">
+              <i class="fa-solid fa-expand" id="videoFullscreenIcon"></i>
+            </button>
           </div>
         {% elif current_content.content_type == 'pdf' %}
           <div class="mb-3" style="height: 70vh; border-radius: 14px; overflow:hidden; border:1px solid var(--color-border);">

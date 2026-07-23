@@ -250,6 +250,15 @@ a:hover { color: var(--color-primary-dark); }
 .video-frame-wrap iframe {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;
 }
+.video-fullscreen-btn {
+  position: absolute; bottom: 12px; right: 12px; z-index: 5;
+  background: rgba(0,0,0,0.55); color: #fff; border: none; border-radius: 8px;
+  width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background 0.15s ease;
+}
+.video-fullscreen-btn:hover { background: rgba(0,0,0,0.8); }
+.video-frame-wrap:fullscreen { padding-top: 0; height: 100%; }
+.video-frame-wrap:fullscreen iframe { height: 100%; }
 
 /* ---------- Hero ---------- */
 .hero-section {
