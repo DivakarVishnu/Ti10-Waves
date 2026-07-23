@@ -150,16 +150,19 @@ def add_course():
             return render_template("admin/add_course.html", batches=all_batches)
 
         thumbnail_path = None
+        thumbnail_public_id = None
         thumb_file = request.files.get("thumbnail")
         if thumb_file and thumb_file.filename:
             try:
-                thumbnail_path = save_upload(thumb_file, subfolder="thumbnails")
+                thumbnail_path, thumbnail_public_id = save_upload(
+                    thumb_file, subfolder="thumbnails", resource_type="image")
             except ValueError as e:
                 flash(str(e), "danger")
                 return render_template("admin/add_course.html", batches=all_batches)
 
         course = Course(title=title, description=description, category=category,
                         instructor=instructor, duration=duration, thumbnail=thumbnail_path,
+                        thumbnail_public_id=thumbnail_public_id,
                         batch_id=batch_id, published=published)
         db.session.add(course)
         log_activity("Course created", f'"{title}"')
@@ -189,7 +192,11 @@ def edit_course(course_id):
         thumb_file = request.files.get("thumbnail")
         if thumb_file and thumb_file.filename:
             try:
-                course.thumbnail = save_upload(thumb_file, subfolder="thumbnails")
+                old_thumbnail, old_public_id = course.thumbnail, course.thumbnail_public_id
+                course.thumbnail, course.thumbnail_public_id = save_upload(
+                    thumb_file, subfolder="thumbnails", resource_type="image")
+                if old_thumbnail or old_public_id:
+                    delete_upload_file(old_thumbnail, public_id=old_public_id, resource_type="image")
             except ValueError as e:
                 flash(str(e), "danger")
                 return render_template("admin/edit_course.html", course=course, batches=all_batches)
@@ -278,13 +285,15 @@ def upload_material(course_id):
         return redirect(url_for("admin.manage_content", course_id=course.id))
 
     try:
-        file_path = save_upload(file, subfolder=f"course_{course.id}")
+        file_path, file_public_id = save_upload(file, subfolder=f"course_{course.id}",
+                                                  resource_type="raw")
     except ValueError as e:
         flash(str(e), "danger")
         return redirect(url_for("admin.manage_content", course_id=course.id))
 
     content = CourseContent(course_id=course.id, title=title, description=description,
-                             content_type=content_type, file_path=file_path, order=order)
+                             content_type=content_type, file_path=file_path,
+                             file_public_id=file_public_id, order=order)
     db.session.add(content)
     db.session.commit()
     flash(f'"{title}" uploaded.', "success")
@@ -297,8 +306,9 @@ def delete_content(content_id):
     content = CourseContent.query.get_or_404(content_id)
     course_id = content.course_id
     title = content.title
-    if content.file_path:
-        delete_upload_file(content.file_path)
+    if content.file_path or content.file_public_id:
+        rtype = "raw" if content.content_type in ("pdf", "word") else "image"
+        delete_upload_file(content.file_path, public_id=content.file_public_id, resource_type=rtype)
     db.session.delete(content)
     log_activity("Content removed", f'"{title}"')
     db.session.commit()
@@ -484,7 +494,8 @@ def storage():
                             orphans=orphans, orphan_total_human=human_size(orphan_total),
                             batch_breakdown=batch_breakdown,
                             unassigned_size_human=human_size(unassigned_size),
-                            unassigned_count=len(unassigned_courses))
+                            unassigned_count=len(unassigned_courses),
+                            cloudinary_enabled=current_app.config.get("USE_CLOUDINARY", False))
 
 
 def _safe_size(path):

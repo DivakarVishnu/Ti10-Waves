@@ -77,7 +77,8 @@ class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(150), nullable=False)
     description = db.Column(db.Text)
-    thumbnail = db.Column(db.String(255))  # filename or URL
+    thumbnail = db.Column(db.String(500))  # local relative path OR full Cloudinary URL
+    thumbnail_public_id = db.Column(db.String(255))  # set only when stored on Cloudinary
     category = db.Column(db.String(80))
     instructor = db.Column(db.String(120))
     duration = db.Column(db.String(50))
@@ -117,7 +118,8 @@ class CourseContent(db.Model):
     content_type = db.Column(db.String(20), nullable=False)  # video | pdf | word
     youtube_url = db.Column(db.String(255))
     youtube_id = db.Column(db.String(50))
-    file_path = db.Column(db.String(255))
+    file_path = db.Column(db.String(500))  # local relative path OR full Cloudinary URL
+    file_public_id = db.Column(db.String(255))  # set only when stored on Cloudinary
     order = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 

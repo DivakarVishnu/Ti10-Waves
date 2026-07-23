@@ -34,32 +34,6 @@ function markNotificationRead(notifId, el) {
     .catch((err) => console.error("Failed to mark notification read:", err));
 }
 
-// Toggle fullscreen on the video wrapper (works cross-browser, incl. Safari prefix)
-function toggleVideoFullscreen() {
-  const wrap = document.getElementById("videoWrap");
-  const icon = document.getElementById("videoFullscreenIcon");
-  if (!wrap) return;
-
-  const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
-
-  if (!isFullscreen) {
-    if (wrap.requestFullscreen) wrap.requestFullscreen();
-    else if (wrap.webkitRequestFullscreen) wrap.webkitRequestFullscreen();
-  } else {
-    if (document.exitFullscreen) document.exitFullscreen();
-    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-  }
-}
-
-["fullscreenchange", "webkitfullscreenchange"].forEach((evt) => {
-  document.addEventListener(evt, () => {
-    const icon = document.getElementById("videoFullscreenIcon");
-    if (!icon) return;
-    const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
-    icon.className = isFullscreen ? "fa-solid fa-compress" : "fa-solid fa-expand";
-  });
-});
-
 document.addEventListener("DOMContentLoaded", () => {
   // Auto-dismiss flash messages after 4 seconds
   document.querySelectorAll(".alert-dismissible").forEach((alert) => {

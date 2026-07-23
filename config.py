@@ -1,4 +1,7 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()  # reads a local .env file, if present, into os.environ
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -31,18 +34,17 @@ class Config:
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # Neon (and most serverless/pooled Postgres) drop idle connections.
-    # Without pool_pre_ping, SQLAlchemy can hand back a dead connection and
-    # the next DB write 500s. This checks the connection is alive first and
-    # transparently reconnects if not.
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        "pool_pre_ping": True,
-        "pool_recycle": 280,
-    }
-
     UPLOAD_FOLDER = os.path.join(basedir, "static", "uploads")
     MAX_CONTENT_LENGTH = 25 * 1024 * 1024  # 25 MB
     ALLOWED_EXTENSIONS = {"pdf", "doc", "docx", "png", "jpg", "jpeg"}
+
+    # Cloudinary: when set, ALL new uploads (thumbnails, PDFs, Word docs) go
+    # to Cloudinary's persistent storage instead of local disk — so nothing
+    # is lost when Render wipes the ephemeral filesystem on redeploy/restart.
+    # Format: cloudinary://<api_key>:<api_secret>@<cloud_name>
+    CLOUDINARY_URL = _env("CLOUDINARY_URL")
+    CLOUDINARY_FOLDER = _env("CLOUDINARY_FOLDER", "ti10-waves")
+    USE_CLOUDINARY = bool(CLOUDINARY_URL)
 
     # Default admin account — same naming convention as Ti10 (KITCSE / CSE4321).
     # Admin logs in with a username (no email required).

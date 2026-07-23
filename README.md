@@ -75,31 +75,40 @@ course_platform/
 
 1. Push this project to a GitHub repo.
 2. Create a Neon Postgres database, copy its connection string.
-3. Create a new Render Web Service pointing at the repo.
-4. Build command: `pip install -r requirements-deploy.txt`
-5. Start command: `gunicorn app:app` (already in `Procfile`)
-6. Set environment variables on Render (see `.env.example` for the full list):
+3. Create a free Cloudinary account at cloudinary.com, copy the "API Environment variable"
+   string from your dashboard (looks like `cloudinary://<key>:<secret>@<cloud_name>`).
+4. Create a new Render Web Service pointing at the repo.
+5. Build command: `pip install -r requirements-deploy.txt`
+6. Start command: `gunicorn app:app` (already in `Procfile`)
+7. Set environment variables on Render (see `.env.example` for the full list):
    - `SECRET_KEY` — a random string
    - `DATABASE_URL` — your Neon Postgres connection string (the app auto-converts
      `postgres://` to `postgresql://` for SQLAlchemy)
+   - `CLOUDINARY_URL` — your Cloudinary connection string (see step 3) — **set this or
+     uploaded files will be lost on every redeploy**
    - `DEFAULT_ADMIN_USERNAME` — defaults to `KITCSE` if unset
    - `DEFAULT_ADMIN_PASSWORD` — defaults to `CSE4321` if unset (change this for production!)
    - `DEFAULT_ADMIN_EMAIL` — optional, can be left blank
 
-> **Note on file storage:** local `static/uploads` storage works for a quick deploy, but Render's
-> filesystem is ephemeral — uploaded files will be lost on redeploy/restart. For production,
-> point uploads at S3, Cloudinary, or another persistent storage service instead.
+> **File storage:** with `CLOUDINARY_URL` set, every thumbnail/PDF/Word upload goes straight to
+> Cloudinary and survives redeploys, restarts, and Render's ephemeral filesystem. Without it,
+> uploads fall back to local disk under `static/uploads/` — fine for local development, but those
+> files **will be wiped** the next time Render redeploys or restarts the service. Existing local
+> files aren't auto-migrated to Cloudinary when you add the env var later — only new uploads
+> after that point go to Cloudinary.
 
 ## Storage & data maintenance
 
 Go to **Admin → Storage & Cleanup** to:
-- See total disk usage of `static/uploads`
-- Find and delete orphaned files (uploads no longer referenced by any course/lesson)
+- See total local-disk usage of `static/uploads` (a banner tells you whether Cloudinary is
+  active — once it is, new uploads no longer count against this local figure)
+- Find and delete orphaned local files (uploads no longer referenced by any course/lesson)
 - Clear an entire batch's courses, content, enrollments, and progress in one action (keeps the
   batch itself so it can be reused next year)
 
-Deleting a course or a piece of content from **Manage Courses** also removes its files from disk
-automatically (not just the DB row).
+Deleting a course, a piece of content, or a batch (with "wipe" checked) also removes its files
+automatically — from Cloudinary if that's where they live, or from local disk otherwise. Nothing
+is ever silently orphaned by these delete actions.
 
 ## Notes
 

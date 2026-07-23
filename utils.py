@@ -6,6 +6,9 @@ from urllib.parse import urlparse, parse_qs
 from werkzeug.utils import secure_filename
 from flask import current_app
 
+import cloudinary
+import cloudinary.uploader
+
 
 def extract_youtube_id(url: str):
     """Extract the video ID from common YouTube URL formats."""
@@ -41,13 +44,40 @@ def allowed_file(filename: str) -> bool:
     return ext in current_app.config["ALLOWED_EXTENSIONS"]
 
 
-def save_upload(file_storage, subfolder: str = ""):
-    """Securely save an uploaded file and return its relative path (under uploads/)."""
+def save_upload(file_storage, subfolder: str = "", resource_type: str = "auto"):
+    """Save an uploaded file and return (path_or_url, public_id).
+
+    - If Cloudinary is configured (CLOUDINARY_URL set), the file goes to
+      Cloudinary and this returns (secure_url, public_id) — public_id is
+      needed later to actually delete the asset from Cloudinary.
+    - Otherwise it falls back to local disk under UPLOAD_FOLDER and returns
+      (relative_path, None). Local files are lost if the host's filesystem
+      is wiped on redeploy (e.g. Render free tier) — Cloudinary avoids that.
+    """
     if not file_storage or file_storage.filename == "":
-        return None
+        return None, None
     if not allowed_file(file_storage.filename):
         raise ValueError("File type not allowed")
 
+    if current_app.config.get("USE_CLOUDINARY"):
+        base_folder = current_app.config.get("CLOUDINARY_FOLDER", "ti10-waves")
+        folder = f"{base_folder}/{subfolder}" if subfolder else base_folder
+        original_name = secure_filename(file_storage.filename)
+        name_no_ext = os.path.splitext(original_name)[0]
+        public_id = f"{uuid.uuid4().hex}_{name_no_ext}"
+
+        result = cloudinary.uploader.upload(
+            file_storage,
+            folder=folder,
+            public_id=public_id,
+            resource_type=resource_type,   # "image" for thumbnails, "raw" for pdf/doc
+            use_filename=False,
+            unique_filename=False,
+            overwrite=False,
+        )
+        return result["secure_url"], result["public_id"]
+
+    # ---- Local disk fallback (dev only, or if Cloudinary isn't set up) ----
     original_name = secure_filename(file_storage.filename)
     unique_name = f"{uuid.uuid4().hex}_{original_name}"
 
@@ -60,7 +90,7 @@ def save_upload(file_storage, subfolder: str = ""):
     file_storage.save(filepath)
 
     rel_path = os.path.join(subfolder, unique_name) if subfolder else unique_name
-    return rel_path.replace("\\", "/")
+    return rel_path.replace("\\", "/"), None
 
 
 def content_type_label(content_type: str) -> str:
@@ -69,10 +99,21 @@ def content_type_label(content_type: str) -> str:
 
 # ---------- Storage maintenance helpers ----------
 
-def delete_upload_file(rel_path: str) -> bool:
-    """Delete a file under UPLOAD_FOLDER given its stored relative path. Safe no-op if missing."""
-    if not rel_path:
+def delete_upload_file(rel_path: str, public_id: str = None, resource_type: str = "image") -> bool:
+    """Delete an uploaded file — from Cloudinary if public_id is given, from
+    local disk otherwise. Safe no-op if the file/asset is already gone."""
+    if public_id:
+        try:
+            result = cloudinary.uploader.destroy(public_id, resource_type=resource_type)
+            return result.get("result") == "ok"
+        except Exception:
+            return False
+
+    if not rel_path or rel_path.startswith("http"):
+        # A Cloudinary URL with no public_id on record can't be deleted remotely —
+        # this shouldn't happen for anything uploaded after this update.
         return False
+
     folder = current_app.config["UPLOAD_FOLDER"]
     full_path = os.path.normpath(os.path.join(folder, rel_path))
     # Guard against path traversal outside the uploads folder
@@ -88,13 +129,19 @@ def delete_upload_file(rel_path: str) -> bool:
 
 
 def wipe_course_files(course) -> int:
-    """Delete a course's thumbnail and all of its content files from disk. Returns count removed."""
+    """Delete a course's thumbnail and all of its content files — from
+    Cloudinary or local disk, whichever they were stored on. Returns count removed."""
     removed = 0
-    if course.thumbnail and delete_upload_file(course.thumbnail):
-        removed += 1
-    for content in course.contents:
-        if content.file_path and delete_upload_file(content.file_path):
+    if course.thumbnail or course.thumbnail_public_id:
+        if delete_upload_file(course.thumbnail, public_id=course.thumbnail_public_id,
+                               resource_type="image"):
             removed += 1
+    for content in course.contents:
+        if content.file_path or content.file_public_id:
+            rtype = "raw" if content.content_type in ("pdf", "word") else "image"
+            if delete_upload_file(content.file_path, public_id=content.file_public_id,
+                                   resource_type=rtype):
+                removed += 1
     return removed
 
 
@@ -122,14 +169,16 @@ def human_size(num_bytes: int) -> str:
 
 
 def list_referenced_upload_paths():
-    """All file paths currently referenced by Course.thumbnail / CourseContent.file_path."""
+    """All *local* file paths currently referenced by Course.thumbnail /
+    CourseContent.file_path. Cloudinary URLs are skipped — they're never
+    local orphans since they don't live under UPLOAD_FOLDER at all."""
     from models import Course, CourseContent
     referenced = set()
     for c in Course.query.with_entities(Course.thumbnail).all():
-        if c.thumbnail:
+        if c.thumbnail and not c.thumbnail.startswith("http"):
             referenced.add(os.path.normpath(c.thumbnail))
     for c in CourseContent.query.with_entities(CourseContent.file_path).all():
-        if c.file_path:
+        if c.file_path and not c.file_path.startswith("http"):
             referenced.add(os.path.normpath(c.file_path))
     return referenced
 

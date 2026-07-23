@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_macros.html" import content_file_url with context %}
 {% block title %}{{ course.title }} — Learning{% endblock %}
 {% block content %}
 <div class="container-fluid my-4">
@@ -48,24 +49,21 @@
         </div>
 
         {% if current_content.content_type == 'video' %}
-          <div class="video-frame-wrap mb-3" id="videoWrap">
-            <iframe id="videoIframe" src="https://www.youtube.com/embed/{{ current_content.youtube_id }}?enablejsapi=1" allowfullscreen allow="fullscreen"></iframe>
-            <button type="button" class="video-fullscreen-btn" id="videoFullscreenBtn" title="Fullscreen" onclick="toggleVideoFullscreen()">
-              <i class="fa-solid fa-expand" id="videoFullscreenIcon"></i>
-            </button>
+          <div class="video-frame-wrap mb-3">
+            <iframe src="https://www.youtube.com/embed/{{ current_content.youtube_id }}" allowfullscreen></iframe>
           </div>
         {% elif current_content.content_type == 'pdf' %}
           <div class="mb-3" style="height: 70vh; border-radius: 14px; overflow:hidden; border:1px solid var(--color-border);">
-            <iframe src="{{ url_for('student.uploaded_file', filename=current_content.file_path) }}" width="100%" height="100%" style="border:0;"></iframe>
+            <iframe src="{{ content_file_url(current_content) }}" width="100%" height="100%" style="border:0;"></iframe>
           </div>
-          <a href="{{ url_for('student.uploaded_file', filename=current_content.file_path) }}" download class="btn btn-outline-primary btn-sm">
+          <a href="{{ content_file_url(current_content) }}" download class="btn btn-outline-primary btn-sm">
             <i class="fa-solid fa-download"></i> Download PDF
           </a>
         {% elif current_content.content_type == 'word' %}
           <div class="empty-state border rounded">
             <i class="fa-solid fa-file-word fa-2x mb-3 text-primary"></i>
             <p>Preview isn't available for Word documents in-browser.</p>
-            <a href="{{ url_for('student.uploaded_file', filename=current_content.file_path) }}" download class="btn btn-primary btn-sm">
+            <a href="{{ content_file_url(current_content) }}" download class="btn btn-primary btn-sm">
               <i class="fa-solid fa-download"></i> Download Document
             </a>
           </div>

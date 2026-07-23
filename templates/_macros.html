@@ -1,11 +1,25 @@
 {% macro course_thumb_url(course) %}
   {%- if course.thumbnail -%}
-    {%- if current_user.is_authenticated and current_user.is_admin -%}
+    {%- if course.thumbnail.startswith('http') -%}
+      {{ course.thumbnail }}
+    {%- elif current_user.is_authenticated and current_user.is_admin -%}
       {{ url_for('admin.uploaded_file', filename=course.thumbnail) }}
     {%- elif current_user.is_authenticated -%}
       {{ url_for('student.uploaded_file', filename=course.thumbnail) }}
     {%- else -%}
       {{ course.thumbnail }}
+    {%- endif -%}
+  {%- endif -%}
+{% endmacro %}
+
+{% macro content_file_url(content) %}
+  {%- if content.file_path -%}
+    {%- if content.file_path.startswith('http') -%}
+      {{ content.file_path }}
+    {%- elif current_user.is_authenticated and current_user.is_admin -%}
+      {{ url_for('admin.uploaded_file', filename=content.file_path) }}
+    {%- elif current_user.is_authenticated -%}
+      {{ url_for('student.uploaded_file', filename=content.file_path) }}
     {%- endif -%}
   {%- endif -%}
 {% endmacro %}

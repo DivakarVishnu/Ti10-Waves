@@ -4,6 +4,21 @@
 <div class="section-eyebrow">Maintenance</div>
 <h3 class="mb-4">Storage &amp; Cleanup</h3>
 
+{% if cloudinary_enabled %}
+  <div class="alert alert-success d-flex align-items-center gap-2 mb-4">
+    <i class="fa-solid fa-cloud-arrow-up"></i>
+    <div><strong>Cloudinary connected.</strong> New thumbnails, PDFs, and Word documents are stored
+      remotely and won't be lost on redeploy. The figures below only cover older files still on local disk.</div>
+  </div>
+{% else %}
+  <div class="alert alert-warning d-flex align-items-center gap-2 mb-4">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    <div><strong>Cloudinary not configured.</strong> Uploads are stored on local disk, which is wiped on
+      every Render redeploy/restart. Set a <code>CLOUDINARY_URL</code> environment variable to make
+      uploads persistent.</div>
+  </div>
+{% endif %}
+
 <div class="row g-3 mb-4">
   <div class="col-md-6">
     <div class="stat-card d-flex align-items-center gap-3">
