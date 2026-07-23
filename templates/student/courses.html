@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "_macros.html" import course_card with context %}
+{% block title %}Courses — Ti10-Waves{% endblock %}
+{% block content %}
+<div class="container my-4">
+  <div class="section-eyebrow">Catalog</div>
+  <h3 class="mb-4">Available Courses</h3>
+
+  {% if courses %}
+    <div class="row g-4">
+      {% for course in courses %}
+        {% if course.id in enrolled_ids %}
+          {{ course_card(course, action_html='<a href="' ~ url_for('student.learning', course_id=course.id) ~ '" class="btn btn-primary w-100">Continue Learning</a>') }}
+        {% else %}
+          {{ course_card(course, action_html='<a href="' ~ url_for('student.course_detail', course_id=course.id) ~ '" class="btn btn-outline-primary w-100">View Course</a>') }}
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <i class="fa-solid fa-book-open fa-2x mb-3"></i>
+      <p>No courses available yet.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

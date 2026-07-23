@@ -1,0 +1,71 @@
+{% extends "admin/_admin_base.html" %}
+{% block title %}Manage Notifications — Ti10-Waves{% endblock %}
+{% block admin_content %}
+<div class="section-eyebrow">Announcements</div>
+<h3 class="mb-4">Manage Notifications</h3>
+
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card p-3">
+      <h6 class="mb-3"><i class="fa-solid fa-circle-plus text-success"></i> New Notification</h6>
+      <form method="POST" action="{{ url_for('admin.add_notification') }}">
+        <div class="mb-2">
+          <label class="form-label small">Title</label>
+          <input type="text" name="title" class="form-control form-control-sm" required>
+        </div>
+        <div class="mb-2">
+          <label class="form-label small">Message</label>
+          <textarea name="message" class="form-control form-control-sm" rows="3" required></textarea>
+        </div>
+        <div class="mb-2">
+          <label class="form-label small">Type</label>
+          <select name="notification_type" class="form-select form-select-sm">
+            <option value="general">General</option>
+            <option value="new_course">New Course</option>
+            <option value="new_material">New Material</option>
+            <option value="announcement">Announcement</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label small">Related Course (optional)</label>
+          <select name="course_id" class="form-select form-select-sm">
+            <option value="">— None —</option>
+            {% for course in courses %}
+              <option value="{{ course.id }}">{{ course.title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="btn btn-accent btn-sm w-100"><i class="fa-solid fa-paper-plane"></i> Publish</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card p-3">
+      <h6 class="mb-3">All Notifications ({{ notifications|length }})</h6>
+      {% if notifications %}
+        {% for n in notifications %}
+        <div class="notif-item">
+          <div class="d-flex justify-content-between">
+            <strong>{{ n.title }}</strong>
+            <span class="text-muted small">{{ n.created_at | ist('%d %b %Y') }}</span>
+          </div>
+          <p class="mb-2 small">{{ n.message }}</p>
+          {% if n.course %}<span class="badge badge-category mb-2">{{ n.course.title }}</span>{% endif %}
+          <div>
+            <form action="{{ url_for('admin.delete_notification', notif_id=n.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this notification?');">
+              <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i> Delete</button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <i class="fa-solid fa-bell-slash fa-2x mb-3"></i>
+          <p>No notifications published yet.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

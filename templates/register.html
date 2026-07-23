@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Register — Ti10-Waves{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="auth-card">
+    <h3 class="text-center mb-1">Create your account</h3>
+    <p class="text-center text-muted mb-4">Start learning in minutes</p>
+    <div class="alert alert-info small">Your account needs admin approval before you can log in.</div>
+    <form method="POST">
+      <div class="mb-3">
+        <label class="form-label">Full Name</label>
+        <input type="text" name="name" class="form-control" value="{{ name or '' }}" required autofocus>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" name="email" class="form-control" value="{{ email or '' }}" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Phone Number</label>
+        <input type="text" name="phone" class="form-control" value="{{ phone or '' }}">
+      </div>
+      <div class="row">
+        <div class="col-6 mb-3">
+          <label class="form-label">Year</label>
+          <select name="year" class="form-select">
+            <option value="">Select year</option>
+            <option value="1st Year" {{ 'selected' if year=='1st Year' }}>1st Year</option>
+            <option value="2nd Year" {{ 'selected' if year=='2nd Year' }}>2nd Year</option>
+            <option value="3rd Year" {{ 'selected' if year=='3rd Year' }}>3rd Year</option>
+            <option value="4th Year" {{ 'selected' if year=='4th Year' }}>4th Year</option>
+          </select>
+        </div>
+        <div class="col-6 mb-3">
+          <label class="form-label">Section</label>
+          <input type="text" name="section" class="form-control" value="{{ section or '' }}" placeholder="e.g. A">
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-6 mb-3">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control" required>
+        </div>
+        <div class="col-6 mb-3">
+          <label class="form-label">Confirm Password</label>
+          <input type="password" name="confirm_password" class="form-control" required>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary w-100 mt-2">Register</button>
+    </form>
+    <p class="text-center mt-4 mb-0">
+      Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

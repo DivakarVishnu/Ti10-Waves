@@ -1,0 +1,43 @@
+{% macro course_thumb_url(course) %}
+  {%- if course.thumbnail -%}
+    {%- if current_user.is_authenticated and current_user.is_admin -%}
+      {{ url_for('admin.uploaded_file', filename=course.thumbnail) }}
+    {%- elif current_user.is_authenticated -%}
+      {{ url_for('student.uploaded_file', filename=course.thumbnail) }}
+    {%- else -%}
+      {{ course.thumbnail }}
+    {%- endif -%}
+  {%- endif -%}
+{% endmacro %}
+
+{% macro course_card(course, action_html='') %}
+<div class="col-md-6 col-lg-4">
+  <div class="card course-card card-hover h-100">
+    <div class="thumb">
+      {% set thumb = course_thumb_url(course) %}
+      {% if thumb.strip() %}
+        <img src="{{ thumb.strip() }}" alt="{{ course.title }}">
+      {% else %}
+        <i class="fa-solid fa-graduation-cap"></i>
+      {% endif %}
+    </div>
+    <div class="card-body d-flex flex-column">
+      {% if course.category %}
+        <span class="badge badge-category align-self-start mb-2">{{ course.category }}</span>
+      {% endif %}
+      <h5 class="card-title mb-1">{{ course.title }}</h5>
+      <p class="card-text text-muted small mb-2">{{ (course.description or '')[:100] }}{% if course.description and course.description|length > 100 %}…{% endif %}</p>
+      <div class="small text-muted mb-3">
+        {% if course.instructor %}<i class="fa-regular fa-user"></i> {{ course.instructor }}<br>{% endif %}
+        <i class="fa-solid fa-video"></i> {{ course.video_count }} videos
+        &nbsp;·&nbsp;
+        <i class="fa-solid fa-file-lines"></i> {{ course.document_count }} materials
+        {% if course.duration %}&nbsp;·&nbsp;<i class="fa-regular fa-clock"></i> {{ course.duration }}{% endif %}
+      </div>
+      <div class="mt-auto">
+        {{ action_html | safe }}
+      </div>
+    </div>
+  </div>
+</div>
+{% endmacro %}

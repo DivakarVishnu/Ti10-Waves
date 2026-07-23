@@ -1,0 +1,84 @@
+{% extends "admin/_admin_base.html" %}
+{% block title %}Manage Students — Ti10-Waves{% endblock %}
+{% block admin_content %}
+<div class="section-eyebrow">Students</div>
+<h3 class="mb-4">Registered Students
+  {% if pending_count %}<span class="badge bg-warning text-dark">{{ pending_count }} pending</span>{% endif %}
+</h3>
+
+<ul class="nav nav-pills mb-3">
+  {% for key, label in [('all','All'), ('pending','Pending Approval'), ('approved','Approved'), ('rejected','Rejected'), ('inactive','Deactivated')] %}
+    <li class="nav-item">
+      <a class="nav-link {{ 'active' if status_filter == key }}" href="{{ url_for('admin.students', status=key) }}">{{ label }}</a>
+    </li>
+  {% endfor %}
+</ul>
+
+<div class="card p-3">
+  {% if students %}
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Year / Section</th>
+          <th>Status</th>
+          <th>Enrolled Courses</th>
+          <th>Joined</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for student in students %}
+        <tr>
+          <td class="fw-semibold">{{ student.name }}</td>
+          <td>{{ student.email }}</td>
+          <td>{{ student.year or '—' }}{% if student.section %} / {{ student.section }}{% endif %}</td>
+          <td>
+            {% if student.approval_status == 'pending' %}
+              <span class="badge bg-warning text-dark">Pending</span>
+            {% elif student.approval_status == 'rejected' %}
+              <span class="badge bg-danger">Rejected</span>
+            {% elif not student.account_active %}
+              <span class="badge bg-secondary">Deactivated</span>
+            {% else %}
+              <span class="badge bg-success">Active</span>
+            {% endif %}
+          </td>
+          <td><span class="badge badge-category">{{ enrollment_counts.get(student.id, 0) }}</span></td>
+          <td>{{ student.created_at | ist('%d %b %Y') }}</td>
+          <td class="text-end text-nowrap">
+            <a href="{{ url_for('admin.student_detail', student_id=student.id) }}" class="btn btn-sm btn-outline-primary" title="View Progress"><i class="fa-solid fa-chart-line"></i></a>
+            {% if student.approval_status == 'pending' %}
+              <form action="{{ url_for('admin.approve_student', student_id=student.id) }}" method="POST" class="d-inline">
+                <button type="submit" class="btn btn-sm btn-outline-success" title="Approve"><i class="fa-solid fa-check"></i></button>
+              </form>
+              <form action="{{ url_for('admin.reject_student', student_id=student.id) }}" method="POST" class="d-inline">
+                <button type="submit" class="btn btn-sm btn-outline-danger" title="Reject"><i class="fa-solid fa-xmark"></i></button>
+              </form>
+            {% else %}
+              <form action="{{ url_for('admin.toggle_student_active', student_id=student.id) }}" method="POST" class="d-inline">
+                <button type="submit" class="btn btn-sm {{ 'btn-outline-success' if not student.account_active else 'btn-outline-secondary' }}" title="{{ 'Reactivate' if not student.account_active else 'Deactivate' }}">
+                  <i class="fa-solid {{ 'fa-toggle-on' if student.account_active else 'fa-toggle-off' }}"></i>
+                </button>
+              </form>
+            {% endif %}
+            <form action="{{ url_for('admin.delete_student', student_id=student.id) }}" method="POST" class="d-inline"
+                  onsubmit="return confirm('Permanently delete {{ student.name }} and all their enrollment/progress data?');">
+              <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fa-solid fa-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="empty-state">
+      <i class="fa-solid fa-user-graduate fa-2x mb-3"></i>
+      <p>No students in this view.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

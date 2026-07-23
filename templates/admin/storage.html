@@ -1,0 +1,84 @@
+{% extends "admin/_admin_base.html" %}
+{% block title %}Storage & Cleanup — Ti10-Waves{% endblock %}
+{% block admin_content %}
+<div class="section-eyebrow">Maintenance</div>
+<h3 class="mb-4">Storage &amp; Cleanup</h3>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="stat-card d-flex align-items-center gap-3">
+      <div class="stat-icon"><i class="fa-solid fa-hard-drive"></i></div>
+      <div><div class="stat-value">{{ total_size_human }}</div><div class="text-muted small">Total uploads storage used</div></div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="stat-card d-flex align-items-center gap-3">
+      <div class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+      <div><div class="stat-value">{{ orphans|length }}</div><div class="text-muted small">Orphaned files ({{ orphan_total_human }})</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="card p-3 mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h6 class="mb-0">Orphaned files</h6>
+    {% if orphans %}
+    <form method="POST" action="{{ url_for('admin.clean_orphans') }}" onsubmit="return confirm('Permanently delete {{ orphans|length }} orphaned file(s) from disk?');">
+      <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-broom"></i> Clean up all</button>
+    </form>
+    {% endif %}
+  </div>
+  <p class="text-muted small">Files left on disk that no course or lesson references anymore (e.g. after a course was
+    edited to replace its thumbnail, or a manual deletion outside the app).</p>
+  {% if orphans %}
+    <ul class="list-group list-group-flush">
+      {% for o in orphans[:50] %}
+        <li class="list-group-item d-flex justify-content-between">
+          <span class="small font-monospace">{{ o.rel_path }}</span>
+          <span class="text-muted small">{{ (o.size / 1024) | round(1) }} KB</span>
+        </li>
+      {% endfor %}
+    </ul>
+    {% if orphans|length > 50 %}<p class="text-muted small mt-2">...and {{ orphans|length - 50 }} more.</p>{% endif %}
+  {% else %}
+    <p class="text-muted small mb-0">No orphaned files — storage is clean.</p>
+  {% endif %}
+</div>
+
+<div class="card p-3 mb-4">
+  <h6 class="mb-3">Clear a batch's data (year-wise cleanup)</h6>
+  <p class="text-muted small">Deletes all courses, lesson content, enrollments, and progress records for a batch —
+    and removes their files from disk. The batch itself is kept, so you can reuse it for next year.
+    <strong>This cannot be undone.</strong></p>
+  {% if batch_breakdown %}
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead><tr><th>Batch</th><th>Courses</th><th>Storage used</th><th class="text-end">Action</th></tr></thead>
+        <tbody>
+          {% for row in batch_breakdown %}
+          <tr>
+            <td class="fw-semibold">{{ row.batch.name }} <span class="text-muted small">(Year {{ row.batch.year }})</span></td>
+            <td>{{ row.batch.course_count }}</td>
+            <td>{{ row.size_human }}</td>
+            <td class="text-end">
+              <form action="{{ url_for('admin.clear_batch_data', batch_id=row.batch.id) }}" method="POST"
+                    onsubmit="return confirm('Permanently delete all {{ row.batch.course_count }} course(s), their content, enrollments, progress, and files for &quot;{{ row.batch.name }}&quot;? This cannot be undone.');">
+                <button type="submit" class="btn btn-sm btn-outline-danger" {{ 'disabled' if row.batch.course_count == 0 }}>
+                  <i class="fa-solid fa-eraser"></i> Clear data
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-muted small mb-0">No batches yet.</p>
+  {% endif %}
+  {% if unassigned_count %}
+    <p class="text-muted small mt-3 mb-0">{{ unassigned_count }} course(s) aren't assigned to any batch
+      ({{ unassigned_size_human }}) — manage them individually from <a href="{{ url_for('admin.courses') }}">Manage Courses</a>.</p>
+  {% endif %}
+</div>
+{% endblock %}

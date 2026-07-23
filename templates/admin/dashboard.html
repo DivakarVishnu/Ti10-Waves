@@ -1,0 +1,87 @@
+{% extends "admin/_admin_base.html" %}
+{% block title %}Admin Dashboard — Ti10-Waves{% endblock %}
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <div class="section-eyebrow">Overview</div>
+    <h3 class="mb-0">Admin Dashboard</h3>
+  </div>
+  <a href="{{ url_for('admin.add_course') }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Course</a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg">
+    <div class="stat-card d-flex align-items-center gap-3">
+      <div class="stat-icon"><i class="fa-solid fa-layer-group"></i></div>
+      <div><div class="stat-value">{{ stats.total_courses }}</div><div class="text-muted small">Courses ({{ stats.published_courses }} published)</div></div>
+    </div>
+  </div>
+  <div class="col-6 col-lg">
+    <div class="stat-card d-flex align-items-center gap-3">
+      <div class="stat-icon"><i class="fa-solid fa-calendar-days"></i></div>
+      <div><div class="stat-value">{{ stats.total_batches }}</div><div class="text-muted small">Batches</div></div>
+    </div>
+  </div>
+  <div class="col-6 col-lg">
+    <div class="stat-card d-flex align-items-center gap-3">
+      <div class="stat-icon"><i class="fa-solid fa-user-graduate"></i></div>
+      <div><div class="stat-value">{{ stats.total_students }}</div><div class="text-muted small">Students {% if stats.pending_students %}<a href="{{ url_for('admin.students', status='pending') }}">({{ stats.pending_students }} pending)</a>{% endif %}</div></div>
+    </div>
+  </div>
+  <div class="col-6 col-lg">
+    <div class="stat-card d-flex align-items-center gap-3">
+      <div class="stat-icon"><i class="fa-solid fa-video"></i></div>
+      <div><div class="stat-value">{{ stats.total_videos }}</div><div class="text-muted small">Videos</div></div>
+    </div>
+  </div>
+  <div class="col-6 col-lg">
+    <div class="stat-card d-flex align-items-center gap-3">
+      <div class="stat-icon"><i class="fa-solid fa-file-lines"></i></div>
+      <div><div class="stat-value">{{ stats.total_documents }}</div><div class="text-muted small">Documents</div></div>
+    </div>
+  </div>
+  <div class="col-6 col-lg">
+    <div class="stat-card d-flex align-items-center gap-3">
+      <div class="stat-icon"><i class="fa-solid fa-bell"></i></div>
+      <div><div class="stat-value">{{ stats.total_notifications }}</div><div class="text-muted small">Notifications</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card p-3">
+      <h6 class="mb-3">Recent Courses</h6>
+      {% if recent_courses %}
+        <div class="list-group list-group-flush">
+          {% for course in recent_courses %}
+            <a href="{{ url_for('admin.manage_content', course_id=course.id) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+              <span>{{ course.title }}</span>
+              <span class="badge badge-category">{{ course.category or '—' }}</span>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted small mb-0">No courses yet.</p>
+      {% endif %}
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card p-3">
+      <h6 class="mb-3">Recently Registered Students</h6>
+      {% if recent_students %}
+        <div class="list-group list-group-flush">
+          {% for student in recent_students %}
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+              <span>{{ student.name }}</span>
+              <span class="text-muted small">{{ student.email }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted small mb-0">No students yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

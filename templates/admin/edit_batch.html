@@ -1,0 +1,29 @@
+{% extends "admin/_admin_base.html" %}
+{% block title %}Edit Batch — Ti10-Waves{% endblock %}
+{% block admin_content %}
+<div class="section-eyebrow">Editing</div>
+<h3 class="mb-4">Edit Batch: {{ batch.name }}</h3>
+
+<div class="card p-4" style="max-width: 600px;">
+  <form method="POST">
+    <div class="mb-3">
+      <label class="form-label">Batch Name</label>
+      <input type="text" name="name" class="form-control" value="{{ batch.name }}" required autofocus>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Year</label>
+      <select name="year" class="form-select" required>
+        {% for y in [1,2,3,4] %}
+          <option value="{{ y }}" {{ 'selected' if batch.year == y }}>{{ y }}{{ 'st' if y==1 else 'nd' if y==2 else 'rd' if y==3 else 'th' }} Year</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Description</label>
+      <textarea name="description" class="form-control" rows="3">{{ batch.description or '' }}</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save Changes</button>
+    <a href="{{ url_for('admin.batches') }}" class="btn btn-outline-primary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

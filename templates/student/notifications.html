@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Notifications — Ti10-Waves{% endblock %}
+{% block content %}
+<div class="container my-4" style="max-width: 700px;">
+  <div class="section-eyebrow">Updates</div>
+  <h3 class="mb-4">Notifications</h3>
+
+  {% if notifications %}
+    {% for n in notifications %}
+      {% set is_unread = n.id not in read_ids %}
+      <div class="notif-item {{ 'unread' if is_unread }}" id="notif-{{ n.id }}"
+           onclick="markNotificationRead({{ n.id }}, document.getElementById('notif-{{ n.id }}'))" style="cursor:pointer;">
+        <div class="d-flex justify-content-between">
+          <strong>{{ n.title }}</strong>
+          <span class="text-muted small">{{ n.created_at | ist('%d %b %Y') }}</span>
+        </div>
+        <p class="mb-2 small">{{ n.message }}</p>
+        {% if n.course %}
+          <a href="{{ url_for('student.course_detail', course_id=n.course.id) }}" class="small">View Course <i class="fa-solid fa-arrow-right"></i></a>
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <i class="fa-solid fa-bell-slash fa-2x mb-3"></i>
+      <p>No notifications yet.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

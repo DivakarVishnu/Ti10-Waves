@@ -1,0 +1,28 @@
+{% extends "admin/_admin_base.html" %}
+{% block title %}{{ student.name }} — Progress{% endblock %}
+{% block admin_content %}
+<div class="section-eyebrow">Student</div>
+<h3 class="mb-1">{{ student.name }}</h3>
+<p class="text-muted mb-4">{{ student.email }} {% if student.phone %}· {{ student.phone }}{% endif %}</p>
+
+<div class="card p-3">
+  <h6 class="mb-3">Course Progress</h6>
+  {% if progress_by_course %}
+    {% for item in progress_by_course.values() %}
+    <div class="mb-3">
+      <div class="d-flex justify-content-between mb-1">
+        <span class="fw-semibold">{{ item.course.title }}</span>
+        <span class="text-muted small">{{ item.completed }}/{{ item.total }} lessons · {{ item.pct }}%</span>
+      </div>
+      <div class="progress">
+        <div class="progress-bar progress-bar-custom" style="width: {{ item.pct }}%"></div>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <p class="text-muted small mb-0">This student hasn't enrolled in any courses yet.</p>
+  {% endif %}
+</div>
+
+<a href="{{ url_for('admin.students') }}" class="btn btn-outline-primary mt-3">Back to Students</a>
+{% endblock %}

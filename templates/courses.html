@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% from "_macros.html" import course_card with context %}
+{% block title %}All Courses — Ti10-Waves{% endblock %}
+{% block content %}
+<div class="container my-4">
+  <div class="section-eyebrow">Catalog</div>
+  <h3 class="mb-4">All Courses</h3>
+
+  {% if courses %}
+    <div class="row g-4">
+      {% for course in courses %}
+        {% if current_user.is_authenticated and not current_user.is_admin %}
+          {{ course_card(course, action_html='<a href="' ~ url_for('student.course_detail', course_id=course.id) ~ '" class="btn btn-primary w-100">View Course</a>') }}
+        {% elif current_user.is_authenticated and current_user.is_admin %}
+          {{ course_card(course, action_html='<a href="' ~ url_for('admin.manage_content', course_id=course.id) ~ '" class="btn btn-primary w-100">Manage</a>') }}
+        {% else %}
+          {{ course_card(course, action_html='<a href="' ~ url_for('auth.login') ~ '" class="btn btn-primary w-100">Login to View</a>') }}
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <i class="fa-solid fa-book-open fa-2x mb-3"></i>
+      <p>No courses published yet. Check back soon!</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

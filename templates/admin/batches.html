@@ -1,0 +1,56 @@
+{% extends "admin/_admin_base.html" %}
+{% block title %}Batches — Ti10-Waves{% endblock %}
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <div class="section-eyebrow">Year-wise Organization</div>
+    <h3 class="mb-0">Batches</h3>
+  </div>
+  <a href="{{ url_for('admin.add_batch') }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Batch</a>
+</div>
+
+<div class="card p-3">
+  {% if batches %}
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Batch Name</th>
+          <th>Year</th>
+          <th># Courses</th>
+          <th>Created</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for batch in batches %}
+        <tr>
+          <td class="fw-semibold">{{ batch.name }}</td>
+          <td><span class="badge badge-category">Year {{ batch.year }}</span></td>
+          <td>
+            <a href="{{ url_for('admin.courses', batch_id=batch.id) }}">{{ batch.course_count }} course(s)</a>
+          </td>
+          <td>{{ batch.created_at | ist('%d %b %Y') }}</td>
+          <td class="text-end">
+            <a href="{{ url_for('admin.edit_batch', batch_id=batch.id) }}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="fa-solid fa-pen"></i></a>
+            <form action="{{ url_for('admin.delete_batch', batch_id=batch.id) }}" method="POST" class="d-inline"
+                  onsubmit="return confirm('Delete batch \'{{ batch.name }}\'? Its {{ batch.course_count }} course(s) will be kept but unassigned. Click Cancel, then use Storage & Cleanup if you want to wipe the courses + files too.');">
+              <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete batch (keeps courses)"><i class="fa-solid fa-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="empty-state">
+      <i class="fa-solid fa-calendar-days fa-2x mb-3"></i>
+      <p>No batches yet. Create one to organize courses by year.</p>
+      <a href="{{ url_for('admin.add_batch') }}" class="btn btn-primary">Add Batch</a>
+    </div>
+  {% endif %}
+</div>
+<p class="text-muted small mt-3">To fully wipe a batch's courses and files (not just unassign them), use
+  <a href="{{ url_for('admin.storage') }}">Storage &amp; Cleanup</a>.</p>
+{% endblock %}

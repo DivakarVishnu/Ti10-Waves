@@ -1,0 +1,78 @@
+{% extends "admin/_admin_base.html" %}
+{% block title %}Manage Courses — Ti10-Waves{% endblock %}
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <div class="section-eyebrow">Courses</div>
+    <h3 class="mb-0">Manage Courses</h3>
+  </div>
+  <a href="{{ url_for('admin.add_course') }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Course</a>
+</div>
+
+<form method="GET" class="d-flex align-items-center gap-2 mb-3">
+  <label class="form-label mb-0 small text-muted">Filter by batch:</label>
+  <select name="batch_id" class="form-select form-select-sm" style="max-width: 260px;" onchange="this.form.submit()">
+    <option value="">All batches</option>
+    {% for b in batches %}
+      <option value="{{ b.id }}" {{ 'selected' if selected_batch_id == b.id }}>{{ b.name }} (Year {{ b.year }})</option>
+    {% endfor %}
+  </select>
+  {% if selected_batch_id %}<a href="{{ url_for('admin.courses') }}" class="small">Clear filter</a>{% endif %}
+</form>
+
+<div class="card p-3">
+  {% if courses %}
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Course Name</th>
+          <th>Batch / Year</th>
+          <th>Status</th>
+          <th>Category</th>
+          <th># Contents</th>
+          <th>Created</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for course in courses %}
+        <tr>
+          <td class="fw-semibold">{{ course.title }}</td>
+          <td>{% if course.batch %}<span class="badge badge-category">{{ course.batch.name }} · Yr {{ course.batch.year }}</span>{% else %}<span class="text-muted small">Unassigned</span>{% endif %}</td>
+          <td>
+            {% if course.published %}
+              <span class="badge bg-success">Published</span>
+            {% else %}
+              <span class="badge bg-secondary">Draft</span>
+            {% endif %}
+          </td>
+          <td>{{ course.category or '—' }}</td>
+          <td>{{ course.total_lessons }}</td>
+          <td>{{ course.created_at | ist('%d %b %Y') }}</td>
+          <td class="text-end">
+            <form action="{{ url_for('admin.toggle_publish', course_id=course.id) }}" method="POST" class="d-inline">
+              <button type="submit" class="btn btn-sm {{ 'btn-outline-secondary' if course.published else 'btn-outline-success' }}" title="{{ 'Unpublish' if course.published else 'Publish (release to students)' }}">
+                <i class="fa-solid {{ 'fa-eye-slash' if course.published else 'fa-rocket' }}"></i>
+              </button>
+            </form>
+            <a href="{{ url_for('admin.manage_content', course_id=course.id) }}" class="btn btn-sm btn-outline-primary" title="Manage Content"><i class="fa-solid fa-folder-open"></i></a>
+            <a href="{{ url_for('admin.edit_course', course_id=course.id) }}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="fa-solid fa-pen"></i></a>
+            <form action="{{ url_for('admin.delete_course', course_id=course.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this course, all its content, AND its uploaded files from disk?');">
+              <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fa-solid fa-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="empty-state">
+      <i class="fa-solid fa-layer-group fa-2x mb-3"></i>
+      <p>No courses yet. Create your first course to get started.</p>
+      <a href="{{ url_for('admin.add_course') }}" class="btn btn-primary">Add Course</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

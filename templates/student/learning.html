@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}{{ course.title }} — Learning{% endblock %}
+{% block content %}
+<div class="container-fluid my-4">
+  <div class="row g-4">
+    <div class="col-lg-3">
+      <div class="card p-3">
+        <h6 class="mb-1">{{ course.title }}</h6>
+        <div class="small text-muted mb-2" id="course-progress-label">{{ completed }}/{{ total }} lessons • {{ pct }}%</div>
+        <div class="progress mb-3">
+          <div class="progress-bar progress-bar-custom" id="course-progress-bar" style="width: {{ pct }}%"></div>
+        </div>
+        <div class="lesson-list">
+          {% for content in course.contents %}
+            <a id="lesson-nav-{{ content.id }}"
+               href="{{ url_for('student.learning', course_id=course.id, content_id=content.id) }}"
+               class="lesson-item text-decoration-none {{ 'active' if content.id == current_content.id }} {{ 'completed' if content.id in completed_ids }}">
+              <span class="icon">
+                {% if content.id in completed_ids %}
+                  <i class="fa-solid fa-circle-check"></i>
+                {% elif content.content_type == 'video' %}
+                  <i class="fa-solid fa-circle-play"></i>
+                {% else %}
+                  <i class="fa-regular fa-circle"></i>
+                {% endif %}
+              </span>
+              <span>{{ content.title }}</span>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-9">
+      <div class="card p-4">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <h4 class="mb-1">{{ current_content.title }}</h4>
+            <p class="text-muted small mb-0">{{ current_content.description or '' }}</p>
+          </div>
+          {% if current_content.id in completed_ids %}
+            <button class="btn btn-outline-primary btn-sm" disabled><i class="fa-solid fa-check"></i> Completed</button>
+          {% else %}
+            <button class="btn btn-accent btn-sm" onclick="markLessonComplete({{ current_content.id }}, this)">
+              <i class="fa-regular fa-square-check"></i> Mark as Complete
+            </button>
+          {% endif %}
+        </div>
+
+        {% if current_content.content_type == 'video' %}
+          <div class="video-frame-wrap mb-3">
+            <iframe src="https://www.youtube.com/embed/{{ current_content.youtube_id }}" allowfullscreen></iframe>
+          </div>
+        {% elif current_content.content_type == 'pdf' %}
+          <div class="mb-3" style="height: 70vh; border-radius: 14px; overflow:hidden; border:1px solid var(--color-border);">
+            <iframe src="{{ url_for('student.uploaded_file', filename=current_content.file_path) }}" width="100%" height="100%" style="border:0;"></iframe>
+          </div>
+          <a href="{{ url_for('student.uploaded_file', filename=current_content.file_path) }}" download class="btn btn-outline-primary btn-sm">
+            <i class="fa-solid fa-download"></i> Download PDF
+          </a>
+        {% elif current_content.content_type == 'word' %}
+          <div class="empty-state border rounded">
+            <i class="fa-solid fa-file-word fa-2x mb-3 text-primary"></i>
+            <p>Preview isn't available for Word documents in-browser.</p>
+            <a href="{{ url_for('student.uploaded_file', filename=current_content.file_path) }}" download class="btn btn-primary btn-sm">
+              <i class="fa-solid fa-download"></i> Download Document
+            </a>
+          </div>
+        {% endif %}
+
+        <div class="d-flex justify-content-between mt-4">
+          {% set idx = course.contents.index(current_content) %}
+          {% if idx > 0 %}
+            <a href="{{ url_for('student.learning', course_id=course.id, content_id=course.contents[idx-1].id) }}" class="btn btn-outline-primary btn-sm">
+              <i class="fa-solid fa-arrow-left"></i> Previous
+            </a>
+          {% else %}<span></span>{% endif %}
+          {% if idx < course.contents|length - 1 %}
+            <a href="{{ url_for('student.learning', course_id=course.id, content_id=course.contents[idx+1].id) }}" class="btn btn-outline-primary btn-sm">
+              Next <i class="fa-solid fa-arrow-right"></i>
+            </a>
+          {% else %}<span></span>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

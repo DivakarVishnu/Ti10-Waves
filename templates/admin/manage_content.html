@@ -1,0 +1,95 @@
+{% extends "admin/_admin_base.html" %}
+{% block title %}Manage Content — {{ course.title }}{% endblock %}
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <div class="section-eyebrow">Course Content</div>
+    <h3 class="mb-0">{{ course.title }}</h3>
+  </div>
+  <a href="{{ url_for('admin.edit_course', course_id=course.id) }}" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-pen"></i> Edit Details</a>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card p-3 mb-3">
+      <h6 class="mb-3"><i class="fa-solid fa-video text-success"></i> Add YouTube Video</h6>
+      <form method="POST" action="{{ url_for('admin.add_video', course_id=course.id) }}">
+        <div class="mb-2">
+          <label class="form-label small">Video Title</label>
+          <input type="text" name="title" class="form-control form-control-sm" required>
+        </div>
+        <div class="mb-2">
+          <label class="form-label small">Video Description</label>
+          <textarea name="description" class="form-control form-control-sm" rows="2"></textarea>
+        </div>
+        <div class="mb-2">
+          <label class="form-label small">YouTube URL</label>
+          <input type="url" name="youtube_url" class="form-control form-control-sm" placeholder="https://www.youtube.com/watch?v=..." required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label small">Video Order</label>
+          <input type="number" name="order" class="form-control form-control-sm" value="{{ course.contents|length + 1 }}">
+        </div>
+        <button type="submit" class="btn btn-accent btn-sm w-100"><i class="fa-solid fa-plus"></i> Add Video</button>
+      </form>
+    </div>
+
+    <div class="card p-3">
+      <h6 class="mb-3"><i class="fa-solid fa-file-arrow-up text-success"></i> Upload PDF / Word Document</h6>
+      <form method="POST" action="{{ url_for('admin.upload_material', course_id=course.id) }}" enctype="multipart/form-data">
+        <div class="mb-2">
+          <label class="form-label small">Material Title</label>
+          <input type="text" name="title" class="form-control form-control-sm" required>
+        </div>
+        <div class="mb-2">
+          <label class="form-label small">Description</label>
+          <textarea name="description" class="form-control form-control-sm" rows="2"></textarea>
+        </div>
+        <div class="mb-2">
+          <label class="form-label small">File (.pdf, .doc, .docx)</label>
+          <input type="file" name="file" class="form-control form-control-sm" accept=".pdf,.doc,.docx" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label small">Order</label>
+          <input type="number" name="order" class="form-control form-control-sm" value="{{ course.contents|length + 1 }}">
+        </div>
+        <button type="submit" class="btn btn-accent btn-sm w-100"><i class="fa-solid fa-upload"></i> Upload Material</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card p-3">
+      <h6 class="mb-3">Course Contents ({{ course.contents|length }})</h6>
+      {% if course.contents %}
+        <div class="list-group list-group-flush">
+          {% for content in course.contents %}
+          <div class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <span class="badge bg-light text-dark border me-2">#{{ content.order }}</span>
+              {% if content.content_type == 'video' %}
+                <i class="fa-solid fa-circle-play text-success"></i>
+              {% elif content.content_type == 'pdf' %}
+                <i class="fa-solid fa-file-pdf text-danger"></i>
+              {% else %}
+                <i class="fa-solid fa-file-word text-primary"></i>
+              {% endif %}
+              <span class="fw-semibold">{{ content.title }}</span>
+              <div class="text-muted small">{{ content.description or '' }}</div>
+            </div>
+            <form action="{{ url_for('admin.delete_content', content_id=content.id) }}" method="POST" onsubmit="return confirm('Remove this content?');">
+              <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button>
+            </form>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <i class="fa-solid fa-inbox fa-2x mb-3"></i>
+          <p>No content added yet. Use the forms on the left to add videos or upload materials.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

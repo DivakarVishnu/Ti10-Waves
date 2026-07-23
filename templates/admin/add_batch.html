@@ -1,0 +1,31 @@
+{% extends "admin/_admin_base.html" %}
+{% block title %}Add Batch — Ti10-Waves{% endblock %}
+{% block admin_content %}
+<div class="section-eyebrow">New Batch</div>
+<h3 class="mb-4">Add Batch</h3>
+
+<div class="card p-4" style="max-width: 600px;">
+  <form method="POST">
+    <div class="mb-3">
+      <label class="form-label">Batch Name</label>
+      <input type="text" name="name" class="form-control" placeholder="e.g. 2024-2028" required autofocus>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Year</label>
+      <select name="year" class="form-select" required>
+        <option value="">Select year</option>
+        <option value="1">1st Year</option>
+        <option value="2">2nd Year</option>
+        <option value="3">3rd Year</option>
+        <option value="4">4th Year</option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Description</label>
+      <textarea name="description" class="form-control" rows="3"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Create Batch</button>
+    <a href="{{ url_for('admin.batches') }}" class="btn btn-outline-primary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

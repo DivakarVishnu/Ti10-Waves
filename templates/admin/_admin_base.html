@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-lg-2 col-md-3 px-0 d-none d-md-block">
+      <div class="sidebar">
+        <div class="brand"><span class="leaf-dot"></span> Ti10-Waves Admin</div>
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a class="nav-link {{ 'active' if request.endpoint == 'admin.dashboard' }}" href="{{ url_for('admin.dashboard') }}">
+              <i class="fa-solid fa-gauge"></i> Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {{ 'active' if request.endpoint in ['admin.batches','admin.add_batch','admin.edit_batch'] }}" href="{{ url_for('admin.batches') }}">
+              <i class="fa-solid fa-calendar-days"></i> Batches (Year-wise)
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {{ 'active' if request.endpoint in ['admin.courses','admin.edit_course','admin.manage_content'] }}" href="{{ url_for('admin.courses') }}">
+              <i class="fa-solid fa-layer-group"></i> Manage Courses
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {{ 'active' if request.endpoint == 'admin.add_course' }}" href="{{ url_for('admin.add_course') }}">
+              <i class="fa-solid fa-circle-plus"></i> Add Course
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {{ 'active' if request.endpoint in ['admin.students','admin.student_detail'] }}" href="{{ url_for('admin.students') }}">
+              <i class="fa-solid fa-user-graduate"></i> Manage Students
+              {% if pending_approval_count and pending_approval_count > 0 %}
+                <span class="badge bg-warning text-dark ms-1">{{ pending_approval_count }}</span>
+              {% endif %}
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {{ 'active' if request.endpoint == 'admin.notifications' }}" href="{{ url_for('admin.notifications') }}">
+              <i class="fa-solid fa-bell"></i> Manage Notifications
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {{ 'active' if request.endpoint == 'admin.storage' }}" href="{{ url_for('admin.storage') }}">
+              <i class="fa-solid fa-hard-drive"></i> Storage &amp; Cleanup
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {{ 'active' if request.endpoint == 'admin.activity_log' }}" href="{{ url_for('admin.activity_log') }}">
+              <i class="fa-solid fa-clock-rotate-left"></i> Activity Log
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('main.courses') }}">
+              <i class="fa-solid fa-eye"></i> View Public Site
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('auth.logout') }}">
+              <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="col-lg-10 col-md-9 py-4">
+      {% block admin_content %}{% endblock %}
+    </div>
+  </div>
+</div>
+{% endblock %}
